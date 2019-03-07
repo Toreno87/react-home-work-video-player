@@ -10,6 +10,8 @@ export const Player = () => {
     const [ isPlaying, setPlaying ] = useState(false);
     const [ progress, setProgress ] = useState(0);
     const [ isProgressCapturing, setProgressCapturing ] = useState(0);
+    const [ isVolumeCapturing, setVolumeCapturing ] = useState(0);
+    const [ isSpeedCapturing, setSpeedCapturing ] = useState(0);
 
     /**
      * Создаём реф для элемента video.
@@ -23,7 +25,20 @@ export const Player = () => {
         const method = videoRef.current.paused ? 'play' : 'pause';
 
         videoRef.current[ method ]();
+
         setPlaying(method === 'play');
+    };
+
+    const volumeBar = () => {
+        const volumeInput = document.querySelector('input[name="volume"]');
+
+        videoRef.current.volume = volumeInput.value;
+    };
+
+    const speedBar = (event) => {
+        const speedInput = document.querySelector('input[name="playbackRate"]');
+
+        videoRef.current.playbackRate = speedInput.value;
     };
 
     /* Прокручиваем прогресс проигрывания. */
@@ -38,7 +53,7 @@ export const Player = () => {
     const handleProgress = () => {
         const progress
             = videoRef.current.currentTime / videoRef.current.duration * 100;
-
+        
         setProgress(progress);
     };
 
@@ -59,6 +74,20 @@ export const Player = () => {
     };
 
     const playControl = isPlaying ? <>&#10074;&#10074;</> : <>&#9654;</>;
+
+    const fullScreen = () => {
+        const currentVideo = videoRef.current;
+
+        if (currentVideo.requestFullscreen) {
+            currentVideo.requestFullscreen();
+        } else if (currentVideo.mozRequestFullScreen) {
+            currentVideo.mozRequestFullScreen();
+        } else if (currentVideo.webkitRequestFullscreen) {
+            currentVideo.webkitRequestFullscreen();
+        } else if (currentVideo.msRequestFullscreen) { 
+            currentVideo.msRequestFullscreen();
+        }
+    };
 
     /* Добавляем слушатель вкл/выкл видео по нажатию на пробел. */
     useEffect(() => {
@@ -111,6 +140,10 @@ export const Player = () => {
                     name = 'volume'
                     step = '0.05'
                     type = 'range'
+                    onClick = { volumeBar }
+                    onMouseDown = { () => setVolumeCapturing(true) }
+                    onMouseMove = { () => isVolumeCapturing && volumeBar }
+                    onMouseUp = { () => setVolumeCapturing(false) }
                 />
                 <input
                     className = 'slider'
@@ -119,6 +152,10 @@ export const Player = () => {
                     name = 'playbackRate'
                     step = '0.1'
                     type = 'range'
+                    onClick = { speedBar }
+                    onMouseDown = { () => setSpeedCapturing(true) }
+                    onMouseMove = { () => isSpeedCapturing && speedBar }
+                    onMouseUp = { () => setSpeedCapturing(false) }
                 />
                 <button
                     data-skip = '-10'
@@ -130,7 +167,7 @@ export const Player = () => {
                     onClick = { skip }>
                     25s »
                 </button>
-                <button>&#10021;</button>
+                <button onClick = { fullScreen }>&#10021;</button>
             </div>
         </div>
     );
